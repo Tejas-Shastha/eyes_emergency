@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+    <include file="$(find head_detection)/launch/camera.launch" />
+
+    <arg name="predictor" default="$(find eyes_emergency)/resources/shape_predictor_68_face_landmarks.dat" />
+
+    <node name="eyes_emergency" pkg="eyes_emergency" type="eyes_emergency.py"
+        args="$(arg predictor)" output="screen"/>
+
+</launch>
