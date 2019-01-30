@@ -16,7 +16,7 @@ import time
 import dlib
 import cv2
 import rospy
-from std_msgs.msg import Int32
+from std_msgs.msg import Bool
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -57,6 +57,7 @@ def frame_grabber(image, args):
     FRAME += 1
     detector = args[0]
     predictor = args[1]
+    emergency_pub = args[2]
     # grab the indexes of the facial landmarks for the left and
     # right eye, respectively
     (lStart, lEnd) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
@@ -103,8 +104,11 @@ def frame_grabber(image, args):
             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
 	
     if COUNTER > 10:
-		cv2.putText(frame, "LEFT EAR FALLBACK!!", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-		print("LEFT EAR FALLBACK!!! @ ", FRAME)
+        emergency_pub.publish(True)
+        cv2.putText(frame, "LEFT EAR FALLBACK!!", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+		# print("LEFT EAR FALLBACK!!! @ ", FRAME)
+    else:
+        emergency_pub.publish(False)
 
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
@@ -122,8 +126,10 @@ def main():
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(predictor_file)
 
+    emergency_pub = rospy.Publisher("eyes_emergency", Bool)
+
     rospy.Subscriber("/d435/ColorImage",Image,frame_grabber,
-    (detector, predictor))
+    (detector, predictor, emergency_pub))
     rospy.spin()
 
 
