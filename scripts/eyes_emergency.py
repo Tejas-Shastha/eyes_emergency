@@ -28,6 +28,7 @@ roslib.load_manifest("eyes_emergency")
 # frames the eye must be below the threshold
 EYE_AR_THRESH = 0.28
 EYE_AR_CONSEC_FRAMES = 3
+EYE_COUNTER_THRESH = 20
 
 # initialize the frame counters and the total number of blinks
 COUNTER = 0
@@ -89,10 +90,10 @@ def frame_grabber(image, args):
         leftEyeHull = cv2.convexHull(leftEye)
         rightEyeHull = cv2.convexHull(rightEye)
         cv2.drawContours(frame, [leftEyeHull], -1, (0, 255, 0), 1)
-        #cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
+        cv2.drawContours(frame, [rightEyeHull], -1, (0, 255, 0), 1)
 
         global COUNTER
-        if leftEAR < EYE_AR_THRESH:
+        if leftEAR <= EYE_AR_THRESH or rightEAR <= EYE_AR_THRESH:
             COUNTER += 1
         else:
             COUNTER = 0
@@ -126,7 +127,13 @@ def main():
     detector = dlib.get_frontal_face_detector()
     predictor = dlib.shape_predictor(predictor_file)
 
-    emergency_pub = rospy.Publisher("eyes_emergency", Bool)
+    global EYE_AR_THRESH, EYE_COUNTER_THRESH
+    EYE_AR_THRESH = float(sys.argv[2])
+    EYE_COUNTER_THRESH= float(sys.argv[3])
+
+    rospy.loginfo("Setting EAR thresh to {} and counter thresh to {}".format(EYE_AR_THRESH, EYE_COUNTER_THRESH))
+
+    emergency_pub = rospy.Publisher("eyes_emergency", Bool, queue_size=10)
 
     rospy.Subscriber("/d435/ColorImage",Image,frame_grabber,
     (detector, predictor, emergency_pub))

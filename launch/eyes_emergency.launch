@@ -3,8 +3,10 @@
     <include file="$(find head_detection)/launch/camera.launch" />
 
     <arg name="predictor" default="$(find eyes_emergency)/resources/shape_predictor_68_face_landmarks.dat" />
+    <arg name="ear_thresh" default="0.25" />
+    <arg name="counter_thresh" default="20" />
 
     <node name="eyes_emergency" pkg="eyes_emergency" type="eyes_emergency.py"
-        args="$(arg predictor)" output="screen"/>
+        args="$(arg predictor) $(arg ear_thresh) $(arg counter_thresh)" output="screen"/>
 
 </launch>
