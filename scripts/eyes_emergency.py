@@ -20,20 +20,13 @@ from std_msgs.msg import Bool
 
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
-import roslib
-roslib.load_manifest("eyes_emergency")
 
-# define two constants, one for the eye aspect ratio to indicate
-# blink and then a second constant for the number of consecutive
-# frames the eye must be below the threshold
-EYE_AR_THRESH = 0.28
-EYE_AR_CONSEC_FRAMES = 3
-EYE_COUNTER_THRESH = 20
+EYE_AR_THRESH = 0.28  # Threshold EAR below which eyes are classified as closed
+EYE_COUNTER_THRESH = 20 # Number of frames for eyes to stay closed before publishing emergency
 
 # initialize the frame counters and the total number of blinks
 COUNTER = 0
 TOTAL = 0
-FRAME = 0
 
 def eye_aspect_ratio(eye):
 	# compute the euclivs.read()dean distances between the two sets of
@@ -51,11 +44,7 @@ def eye_aspect_ratio(eye):
 	# return the eye aspect ratio
     return ear
 
-
-
 def frame_grabber(image, args):
-    global FRAME
-    FRAME += 1
     detector = args[0]
     predictor = args[1]
     emergency_pub = args[2]
@@ -106,7 +95,7 @@ def frame_grabber(image, args):
 	
     if COUNTER > 10:
         emergency_pub.publish(True)
-        cv2.putText(frame, "LEFT EAR FALLBACK!!", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+        cv2.putText(frame, "EMERGENCY!!!", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 		# print("LEFT EAR FALLBACK!!! @ ", FRAME)
     else:
         emergency_pub.publish(False)
